@@ -78,7 +78,7 @@ types::BLH tf::XYZ2BLH(types::XYZ XYZ)
 	double Y = XYZ.Y;
 	double Z = XYZ.Z;
 
-	double L = std::atan(Y / X);
+	double L = std::atan2(Y, X);
 	//由于B、H计算时两者函数相关，故先取B0，迭代计算
 	double newB = atan(Z / sqrt(X * X + Y * Y));
 	double B = 0;
@@ -88,14 +88,15 @@ types::BLH tf::XYZ2BLH(types::XYZ XYZ)
 		double N = a / sqrt(1 - e2 * sin(B) * sin(B));//卯酉圈半径
 		H = Z / sin(B) - N * (1 - e2);
 		newB = atan((Z * N + Z * H) / (sqrt(X * X + Y * Y) * (N - N * e2 + H)));
-	} while(fabs(B-newB)>1e-10);
+	} while (fabs(B - newB) > 1e-10);
 
 	BLH.B = newB * 180 / PI;
-	BLH.H = H * 180 / PI;
+	BLH.H = H;
 	BLH.L = L * 180 / PI;
-	
+
 	return BLH;
 }
+
 
 types::XYZ tf::BLH2XYZ(types::BLH BLH)
 {

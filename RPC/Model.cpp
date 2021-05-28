@@ -127,6 +127,8 @@ void RFM::solve(std::vector<Eigen::Vector3d> BLH_pts, std::vector<Eigen::Vector2
 
     solver.maxError() = 1e-6;
 
+    solver.maxIteration() = 30;
+
     auto flag = solver.solve();
 
     if (flag == opt::QuitFlag::MaxIterReached) {

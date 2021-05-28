@@ -28,7 +28,7 @@ int main(){
 	std::vector<Eigen::Vector2d> ctrl_pts_img;
 	std::vector<Eigen::Vector3d> ctrl_pts_obj;
 
-	auto test = rpm.predict(488, 744, 49);
+	//auto test = rpm.predict(488, 744, 49);
 
 	for (auto pt : img_pts) {
 		auto XYZ = rpm.predict(pt);

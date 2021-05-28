@@ -67,6 +67,7 @@ public:
 		this->LINE_NUM_COEFF = Eigen::VectorXd(20);
 		this->SAMP_DEN_COEFF = Eigen::VectorXd(20);
 		this->LINE_DEN_COEFF = Eigen::VectorXd(20);
+		this->SAMP_DEN_COEFF.fill(1), this->LINE_DEN_COEFF.fill(1);
 	};
 
 	void solve(std::vector<Eigen::Vector3d> BLH_pts,std::vector<Eigen::Vector2d> img_pts);
