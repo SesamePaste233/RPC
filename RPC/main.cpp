@@ -27,8 +27,9 @@ int main(){
 
 	std::vector<Eigen::Vector2d> ctrl_pts_img;
 	std::vector<Eigen::Vector3d> ctrl_pts_obj;
+	std::vector<types::BLH> BLHarray;
 
-	//auto test = rpm.predict(488, 744, 49);
+	auto test = rpm.predict(488, 744, 49);
 
 	for (auto pt : img_pts) {
 		auto XYZ = rpm.predict(pt);
@@ -36,10 +37,29 @@ int main(){
 		auto BLH = tf::XYZ2BLH(xyz);
 		ctrl_pts_img.push_back(pt.head(2));
 		ctrl_pts_obj.push_back(Eigen::Vector3d(BLH.B, BLH.L, BLH.H));
+		BLHarray.push_back(BLH);
 	}
 
 	RFM rfm;
-
 	rfm.solve(ctrl_pts_obj, ctrl_pts_img);
+
+	Eigen::MatrixXd ctrl_img_reprojection;
+	ctrl_img_reprojection = rfm.forward(BLHarray);
+	double reproj_error_x = 0, reproj_error_y = 0;
+	for (int i = 0; i < ctrl_pts_obj.size(); i++) {
+		Eigen::Vector2d ctrl_img_reprojection_pt = ctrl_img_reprojection.row(i);
+		std::cout << "Id: " << i << "\t Error (x,y): ";
+		std::cout << std::setprecision(8) << std::fixed << ctrl_img_reprojection(i, 0) - ctrl_pts_img[i](0) << '\t';
+		std::cout << std::setprecision(8) << std::fixed << ctrl_img_reprojection(i, 1) - ctrl_pts_img[i](1) << std::endl;
+		reproj_error_x += pow(ctrl_img_reprojection(i, 0) - ctrl_pts_img[i](0), 2);
+		reproj_error_y += pow(ctrl_img_reprojection(i, 1) - ctrl_pts_img[i](1), 2);
+	}
+	reproj_error_x = sqrt(reproj_error_x / double(ctrl_pts_obj.size()));
+	reproj_error_y = sqrt(reproj_error_y / double(ctrl_pts_obj.size()));
+
+	std::cout << "------------------------------------------------------------" << std::endl;
+	std::cout << "像方重投影误差(像素): " << std::setprecision(8) << std::fixed << reproj_error_x <<'\t'<< reproj_error_y << std::endl;
+
+
 
 }

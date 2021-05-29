@@ -38,13 +38,18 @@ public:
 
 	Eigen::Vector3d predict(Eigen::Vector3d pt_with_h);
 
-private:
-	void getExtrinsicElems(double line_id, Eigen::Vector3d& translation, Eigen::Matrix3d& rotation);
+	Eigen::Vector2d forward(Eigen::Vector3d obj_pt);
+
+protected:
+
+	Eigen::Vector2d reproject(double line_id,Eigen::Vector3d obj_pt);
+
+	bool getExtrinsicElems(double line_id, Eigen::Vector3d& translation, Eigen::Matrix3d& rotation);
 
 	inline double getImagingTime(double line_id) {
 		double line_below = std::floor(line_id), line_above = std::ceil(line_id);
-		double t1 = imaging_times[line_below].time;
-		double t2 = imaging_times[line_above].time;
+		double t1 = imaging_times[line_below-1].time;
+		double t2 = imaging_times[line_above-1].time;
 		return t1 + (t2 - t1) * (line_id - line_below);
 	};
 
@@ -71,5 +76,10 @@ public:
 	};
 
 	void solve(std::vector<Eigen::Vector3d> BLH_pts,std::vector<Eigen::Vector2d> img_pts);
+
+	Eigen::MatrixXd forward(std::vector<types::BLH> BLH);
+
+protected:
 	static Eigen::VectorXd normalize(Eigen::VectorXd value, double& offset, double& scale);
+
 }RationalFunctionModel;

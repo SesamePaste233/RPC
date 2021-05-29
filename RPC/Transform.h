@@ -3,7 +3,7 @@
 #include"CommonHeader.h"
 #include"BaseType.h"
 
-#define PI 3.1415926
+#define PI std::_Pi
 namespace types {
 
 	typedef struct {

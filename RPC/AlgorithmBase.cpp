@@ -4,13 +4,13 @@ std::vector<Eigen::Vector3d> utils::genRectGridWithLeveledHeight(int cols, int r
 {
 	std::vector<Eigen::Vector3d> pts;
 
-	double d_c = (c_max - c_min) / double(cols);
-	double d_r = (r_max - r_min) / double(rows);
-	double d_h = (h_max - h_min) / double(dims);
+	int d_c = (c_max - c_min) / (cols+1);
+	int d_r = (r_max - r_min) / (rows+1);
+	int d_h = (h_max - h_min) / (dims);
 
-	for (double h = h_min + d_h / 2;h < h_max;h += d_h) {
-		for (double r = r_min + d_r / 2;r < r_max;r += d_r) {
-			for (double c = c_min + d_c / 2;c < c_max;c += d_c) {
+	for (double h = h_min + d_h, hn = 0;hn < 10 && h <= h_max;hn++,h += d_h) {
+		for (double r = r_min + d_r, rn = 0;rn < 10 && r < r_max;rn++, r += d_r) {
+			for (double c = c_min + d_c, cn = 0;cn < 10 && c < c_max;cn++, c += d_c) {
 				Eigen::Vector3d pt;
 				pt << c, r, h;
 				pts.push_back(pt);
@@ -149,12 +149,17 @@ double utils::lagrangeInterpolation(std::vector<double> v, std::vector<double> w
 
 types::PRY utils::interpolate(Eigen::Matrix3d R1, Eigen::Matrix3d R2, double t1, double t2, double T)
 {
-	types::PRY newPRY;
+	types::PRY newPRY;/*
+	std::cout << R1 << std::endl;
+	std::cout << R2 << std::endl;*/
 	types::PRY PRY1 = toPRY(R1);
 	types::PRY PRY2 = toPRY(R2);
-	double p = PRY1.p + (PRY2.p - PRY1.p) * (T - t1) / (t2 - T);
-	double r = PRY1.r + (PRY2.r - PRY1.r) * (T - t1) / (t2 - T);
-	double y = PRY1.y + (PRY2.y - PRY1.y) * (T - t1) / (t2 - T);
+	/*std::cout << PRY1.p << "   " << PRY1.r << "    " << PRY1.y<<std::endl;
+	std::cout << PRY2.p << "   " << PRY2.r << "    " << PRY2.y << std::endl;*/
+	double p = PRY1.p + (PRY2.p - PRY1.p) * (T - t1) / (t2 - t1);
+	double r = PRY1.r + (PRY2.r - PRY1.r) * (T - t1) / (t2 - t1);
+	double y = PRY1.y + (PRY2.y - PRY1.y) * (T - t1) / (t2 - t1);/*
+	std::cout << p << "   " << r << "    " << y << std::endl;*/
 	newPRY.p = p;
 	newPRY.r = r;
 	newPRY.y = y;

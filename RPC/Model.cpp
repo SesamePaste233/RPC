@@ -1,14 +1,11 @@
 #include "Model.h"
 
+#define _X(a,b) ((a).cwiseProduct(b))
+
 Eigen::Vector3d RPM::predict(double u, double v, double h)
 {
-    auto v1 = floor(v),v2 = ceil(v);
-    double PsiX1 = this->ccd_angles[v1].PsiX;
-    double PsiY1 = this->ccd_angles[v1].PsiY;
-    double PsiX2 = this->ccd_angles[v2].PsiX;
-    double PsiY2 = this->ccd_angles[v2].PsiY;
-    double PsiX = (PsiX2 - PsiX1) * (v - v1) + PsiX1;
-    double PsiY = (PsiY2 - PsiY1) * (v - v1) + PsiY1;
+    double PsiX = this->ccd_angles[v - 1].PsiX;
+    double PsiY = this->ccd_angles[v - 1].PsiY;
 
     Eigen::Vector3d t;
     Eigen::Matrix3d R;
@@ -17,9 +14,10 @@ Eigen::Vector3d RPM::predict(double u, double v, double h)
     Eigen::Vector3d position;
     position << tan(PsiY), tan(PsiX), -1;
 
+    //视方向
     position = R * position;
 
-    //求解椭球角点
+    //求解椭球交点
     double A = this->WGS84_A + h, B = this->WGS84_B + h;
 
     double a = (position(0) * position(0) + position(1) * position(1)) / (A * A) + position(2) * position(2) / (B * B);
@@ -36,7 +34,39 @@ Eigen::Vector3d RPM::predict(Eigen::Vector3d pt_with_h)
     return this->predict(pt_with_h(0), pt_with_h(1), pt_with_h(2));
 }
 
-void RPM::getExtrinsicElems(double line_id, Eigen::Vector3d& translation, Eigen::Matrix3d& rotation)
+//Working in progress!
+Eigen::Vector2d RPM::forward(Eigen::Vector3d obj_pt)
+{
+    int low = 0, high = this->imaging_times[imaging_times.size() - 1].line_id;
+    std::pair<double, double> ls(low, this->reproject(low, obj_pt)(0));
+    std::pair<double, double> le(high, this->reproject(high, obj_pt)(0));
+    double new_l = 0;
+    for (double l = (low + high) / 2.f;true;l = new_l) {
+        std::pair<double, double> lm(l, this->reproject(l, obj_pt)(0));
+        if (lm.second * ls.second < 0) {
+            le = lm;
+        }
+        else if (lm.second * le.second < 0) {
+            ls = lm;
+        }
+        else return Eigen::Vector2d(0, 0);
+        new_l = (ls.first + le.first) / 2.f;
+        if (abs(l - new_l) < 0.05)break;
+    }
+
+    //return Eigen::Vector2d(l,);
+}
+
+Eigen::Vector2d RPM::reproject(double line_id, Eigen::Vector3d obj_pt)
+{
+    Eigen::Vector3d t;Eigen::Matrix3d R;
+    getExtrinsicElems(line_id, t, R);
+    Eigen::Vector3d Psi = R.transpose() * (obj_pt - t);
+    double PsiX = -Psi(0) / Psi(2), PsiY = -Psi(1) / Psi(2);
+    return Eigen::Vector2d(PsiX, PsiY);
+}
+
+bool RPM::getExtrinsicElems(double line_id, Eigen::Vector3d& translation, Eigen::Matrix3d& rotation)
 {
     double time = this->getImagingTime(line_id);
     auto R_s2b = tf::toRotationMatrix(this->pry_sen2body);
@@ -58,10 +88,10 @@ void RPM::getExtrinsicElems(double line_id, Eigen::Vector3d& translation, Eigen:
 
     auto R_b2j = tf::toRotationMatrix(quaternion);
     auto R_j2w = tf::toRotationMatrix(q_j2w);
+
     rotation = R_j2w * R_b2j * R_s2b;
     
-    auto floor_ceil_gps = utils::findFloorAndCeil(time, this->gps_data, 2);
-    translation = utils::interpolate(floor_ceil_gps, time);
+    translation = utils::interpolate(gps_data, time);
 }
 
 void RFM::solve(std::vector<Eigen::Vector3d> BLH_pts, std::vector<Eigen::Vector2d> img_pts)
@@ -92,25 +122,59 @@ void RFM::solve(std::vector<Eigen::Vector3d> BLH_pts, std::vector<Eigen::Vector2
     Eigen::MatrixXd A(2, 78);
     Eigen::VectorXd L(2);
 
+    /*std::cout << X << std::endl << std::endl;
+    std::cout << Y << std::endl << std::endl;
+    std::cout << Z << std::endl << std::endl;
+    std::cout << Line << std::endl << std::endl;
+    std::cout << Sample << std::endl << std::endl;*/
+
     A.fill(0);
     coeff.fill(0);
+
+    Eigen::MatrixXd diff(n, 19);
+    diff << Z, Y, X, _X(Z, Y), _X(Z, X), _X(Y, X), _X(Z, Z), _X(Y, Y), _X(X, X), _X(_X(Z, Y), X), _X(_X(Z, Z), Y), _X(_X(Z, Z), X), _X(_X(Y, Y), Z), _X(_X(Y, Y), X), _X(_X(Z, X), X), _X(_X(X, Y), X), _X(_X(Z, Z), Z), _X(_X(Y, Y), Y), _X(_X(X, X), X);
+
+    //std::cout<< std::setprecision(10) << diff;
+    //Eigen::VectorXd Line_coeff(39);
+    //Eigen::VectorXd Samp_coeff(39);
+    //Eigen::MatrixXd M(n, 39);
+    //Eigen::MatrixXd N(n, 39);
+    //for (int i = 0;i < n;i++) {
+    //    M.row(i) << 1, diff.row(i), -Line(i) * diff.row(i);
+    //    N.row(i) << 1, diff.row(i), -Sample(i) * diff.row(i);
+    //}
+    //Eigen::VectorXd B(500, 1), D(500, 1);
+    //Samp_coeff.fill(0), Line_coeff.fill(0);
+    //B.fill(0), D.fill(0);
+    //
+
+    //for (int iteration = 0;iteration < 20;iteration++) {
+    //    B = diff * Line_coeff.tail(19) + Eigen::VectorXd::Ones(500), D = diff * Samp_coeff.tail(19) + Eigen::VectorXd::Ones(500);
+    //    Eigen::MatrixXd Wr = Eigen::VectorXd::Ones(500).cwiseQuotient(B).asDiagonal(), Wc = Eigen::VectorXd::Ones(500).cwiseQuotient(D).asDiagonal();
+    //    //std::cout << Wr << std::endl;
+    //    Eigen::MatrixXd Nbb = M.transpose() * Wr * Wr * M;
+    //    Eigen::VectorXd Wb = M.transpose() * Wr * Wr * Line;
+    //    Eigen::MatrixXd Ndd = N.transpose() * Wc * Wc * N;
+    //    Eigen::VectorXd Wd = N.transpose() * Wc * Wc * Sample;
+
+    //    Line_coeff = opt::pinv(Nbb) * Wb;
+    //    Samp_coeff = opt::pinv(Ndd) * Wd;
+    //    std::cout << Line_coeff << std::endl;
+    //}
 
     opt::LeastSquareSolver solver(A, L, coeff, n);
 
     auto objectFunction = [&](void*)->bool {
         int i = solver.i();
         A.fill(0);
-        double x = X(i), y = Y(i), z = Z(i), r = Line(i), c = Sample(i);
-        Eigen::VectorXd diff(19);
-        diff << z, y, x, z* y, z* x, y* x, z* z, y* y, x* x, z* y* x, z* z* y, z* z* x, y* y* z, y* y* x, x* x* z, x* x* y, z* z* z, y* y* y, x* x* x;
+        double r = Line(i), c = Sample(i);
+        double B = diff.row(i).dot(coeff.segment(20,19)) + 1;
+        double D = diff.row(i).dot(coeff.segment(59,19)) + 1;
 
-        double B = diff.dot(coeff.segment(20,19)) + 1;
-        double D = diff.dot(coeff.segment(59,19)) + 1;
-
-        A(0, 0) = 1;
-        A.row(0).segment(1, 19) = diff / B, A.row(0).segment(20, 19) =  -r * diff / B;
-        A(1, 39) = 1;
-        A.row(1).segment(40, 19) = diff / D, A.row(1).segment(59, 19) = -r * diff / D;
+        A(0, 0) = 1 / B;
+        A.row(0).segment(1, 19) = diff.row(i) / B, A.row(0).segment(20, 19) =  -r * diff.row(i) / B;
+        A(1, 39) = 1 / D;
+        A.row(1).segment(40, 19) = diff.row(i) / D, A.row(1).segment(59, 19) = -c * diff.row(i) / D;
 
         //std::cout << A << std::endl;
 
@@ -121,6 +185,11 @@ void RFM::solve(std::vector<Eigen::Vector3d> BLH_pts, std::vector<Eigen::Vector2
         return solver.is_enough_observation();
     };
 
+    auto condition = [&]()->bool {
+        std::cout << solver.sigma() << std::endl;
+        return solver.sigma() < 1e-4;
+    };
+    solver.addQuitCondition(condition);
     solver.setObjectFunction(objectFunction);
 
     solver.dropX = true;
@@ -154,4 +223,67 @@ Eigen::VectorXd RFM::normalize(Eigen::VectorXd value, double& offset, double& sc
     Eigen::VectorXd ones(value.size());
     ones.fill(1);
     return (value - ones * offset) / scale;
+}
+
+Eigen::MatrixXd RFM::forward(std::vector<types::BLH> BLH)
+{
+    int n = BLH.size();
+    Eigen::MatrixXd LS(n, 2);
+    Eigen::VectorXd X(n);
+    Eigen::VectorXd Y(n);
+    Eigen::VectorXd Z(n);
+    Eigen::VectorXd ones(n);
+    ones.fill(1);
+    int n = BLH.size();
+    for (int i = 0; i < n; i++) {
+        X(i) = BLH[i].B;
+        Y(i) = BLH[i].L;
+        Z(i) = BLH[i].H;
+    }
+    //正则化BLH
+    Eigen::VectorXd normX;
+    double X_offset, X_scale;
+    Eigen::VectorXd normY;
+    double Y_offset, Y_scale;
+    Eigen::VectorXd normZ;
+    double Z_offset, Z_scale;
+    normX = (X - ones * this->X_RECT_COEFF(0)) / X_RECT_COEFF(1);
+    normY = (Y - ones * this->Y_RECT_COEFF(0)) / Y_RECT_COEFF(1);
+    normZ = (Z - ones * this->Z_RECT_COEFF(0)) / Z_RECT_COEFF(1);
+    Eigen::MatrixXd A(n, 20);
+    for (int i = 0; i < n; i++) {
+        A(i, 0) = ones(i);
+        A(i, 1) = normZ(i);
+        A(i, 2) = normY(i);
+        A(i, 3) = normX(i);
+        A(i, 4) = normZ(i) * normY(i);
+        A(i, 5) = normZ(i) * normX(i);
+        A(i, 6) = normY(i) * normX(i);
+        A(i, 7) = normZ(i) * normZ(i);
+        A(i, 8) = normY(i) * normY(i);
+        A(i, 9) = normX(i) * normX(i);
+        A(i, 10) = normZ(i) * normY(i) * normX(i);
+        A(i, 11) = normZ(i) * normZ(i) * normY(i);
+        A(i, 12) = normZ(i) * normZ(i) * normX(i);
+        A(i, 13) = normY(i) * normY(i) * normZ(i);
+        A(i, 14) = normY(i) * normY(i) * normX(i);
+        A(i, 15) = normX(i) * normX(i) * normZ(i);
+        A(i, 16) = normX(i) * normX(i) * normY(i);
+        A(i, 17) = normZ(i) * normZ(i) * normZ(i);
+        A(i, 18) = normY(i) * normY(i) * normY(i);
+        A(i, 19) = normX(i) * normX(i) * normX(i);
+    }
+
+    Eigen::VectorXd line(n);
+    Eigen::VectorXd sample(n);
+    line = (A * LINE_NUM_COEFF).cwiseQuotient(A * LINE_DEN_COEFF);
+    sample = (A * SAMP_NUM_COEFF).cwiseQuotient(A * SAMP_DEN_COEFF);
+
+    //反正则化
+    for (int i = 0; i < n; i++) {
+        LS(i, 0) = line(i) * LINE_RECT_COEFF(1) + LINE_RECT_COEFF(0);
+        LS(i, 1) = sample(i) * SAMPLE_RECT_COEFF(1) + SAMPLE_RECT_COEFF(0);
+        //        std::cout << LS(i, 0) << "   " << LS(i, 1) << std::endl;
+    }
+    return LS;
 }

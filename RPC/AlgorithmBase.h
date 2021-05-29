@@ -44,15 +44,70 @@ namespace utils {
 
 		int radius = 3;
 		if (delta_t != 0) {
-			begin += (st / delta_t - radius) > 0 ? st / delta_t - radius : 0;
-			end = begin + 2 * radius;
+			if (st / delta_t - radius < 0)return std::vector<T>();
+			begin += st / delta_t - radius;
+			if (st / delta_t + radius >= data_seq.size()) {
+				end = data_seq.begin() + data_seq.size() - 1;
+			}
+			else end = begin + 2 * radius;
 		}
 		auto iter = data_seq.begin();
 		do {
 			iter = std::find_if(begin, end, [&](T a) {return a.header.timeCode > t;});
 			if (iter != data_seq.end())break;
-			begin -= radius;
-			end += radius;
+			try {
+				begin -= radius;
+				end += radius;
+			}
+			catch (...) {
+				return std::vector<T>();
+			}
+		} while (iter == data_seq.end());
+
+		std::vector<T> output;
+		if ((iter - 1)->header.timeCode == t) {
+			for (auto i = iter - 1 - range_off_set;i != iter + range_off_set;i++) {
+				output.push_back(*i);
+			}
+		}
+		for (auto i = iter - 1 - range_off_set;i != iter + 1 + range_off_set;i++) {
+			output.push_back(*i);
+		}
+		return output;
+	}
+
+
+	template<class T>
+	auto _find_floor_and_ceil(double v, std::vector<T> data_seq, int range_off_set = 0) {
+		//std::sort(data_seq.begin(), data_seq.end(), [](T a, T b) {return a.header.timeCode < b.header.timeCode;});
+
+		int size = data_seq.size();
+		double delta_t = (data_seq[size - 1].header.timeCode - data_seq[0].header.timeCode) / double(size - 1);
+
+		double st = t - data_seq[0].header.timeCode;
+		auto begin = data_seq.begin();
+		auto end = data_seq.end();
+
+		int radius = 3;
+		if (delta_t != 0) {
+			if (st / delta_t - radius < 0)return std::vector<T>();
+			begin += st / delta_t - radius;
+			if (st / delta_t + radius >= data_seq.size()) {
+				end = data_seq.begin() + data_seq.size() - 1;
+			}
+			else end = begin + 2 * radius;
+		}
+		auto iter = data_seq.begin();
+		do {
+			iter = std::find_if(begin, end, [&](T a) {return a.header.timeCode > t;});
+			if (iter != data_seq.end())break;
+			try {
+				begin -= radius;
+				end += radius;
+			}
+			catch (...) {
+				return std::vector<T>();
+			}
 		} while (iter == data_seq.end());
 
 		std::vector<T> output;

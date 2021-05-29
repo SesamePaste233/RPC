@@ -5,10 +5,29 @@
 #include "Eigen/Sparse"
 #include "Eigen/SparseCholesky"
 #include "Eigen/SparseQR"
-
+/// <summary>
+/// Version: 2021-5-28
+/// Last updated: Pseudo-inverse Method add during inverse-based optimization.
+/// </summary>
 
 namespace opt {
 		
+	/// <summary>
+	/// Pseudo-inverse of input_matrix input matrix.
+	/// </summary>
+	/// <typeparam name="_Matrix_Type_"></typeparam>
+	/// <param name="input_matrix">Input matrix.</param>
+	/// <returns>Pseudo-inverse of input_matrix</returns>
+	template<typename _Matrix_Type_>
+	_Matrix_Type_ pinv(const _Matrix_Type_& input_matrix, double epsilon =
+		std::numeric_limits<double>::epsilon())
+	{
+		Eigen::JacobiSVD< _Matrix_Type_ > svd(input_matrix, Eigen::ComputeThinU | Eigen::ComputeThinV);
+		double tolerance = epsilon * std::max(input_matrix.cols(), input_matrix.rows()) * svd.singularValues().array().abs()(0);
+		return svd.matrixV() * (svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0).matrix().asDiagonal() * svd.matrixU().adjoint();
+	}
+
+
 	enum class QuitFlag
 	{
 		MinErrorReached = 0,

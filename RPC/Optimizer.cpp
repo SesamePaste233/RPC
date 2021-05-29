@@ -46,7 +46,7 @@ opt::QuitFlag opt::LeastSquareSolver::solve(void* data)
 					continue;
 				}
 
-				deltaX = Hessian.inverse() * Gradiant;//Update equation for Gauss-Newton Method
+				deltaX = pinv(Hessian) * Gradiant;//Update equation for Gauss-Newton Method
 
 				//std::cout << deltaX <<std::endl << std::endl;
 
