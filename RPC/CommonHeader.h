@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <iomanip>
+#include <functional>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>

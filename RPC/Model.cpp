@@ -34,14 +34,16 @@ Eigen::Vector3d RPM::predict(Eigen::Vector3d pt_with_h)
     return this->predict(pt_with_h(0), pt_with_h(1), pt_with_h(2));
 }
 
-//Working in progress!
+
 Eigen::Vector2d RPM::forward(Eigen::Vector3d obj_pt)
 {
     int low = 0, high = this->imaging_times[imaging_times.size() - 1].line_id;
     std::pair<double, double> ls(low, this->reproject(low, obj_pt)(0));
     std::pair<double, double> le(high, this->reproject(high, obj_pt)(0));
     double new_l = 0;
-    for (double l = (low + high) / 2.f;true;l = new_l) {
+    int iter = 0;
+    bool found = false;
+    for (double l = (low + high) / 2.f;iter<20;iter++,l = new_l) {
         std::pair<double, double> lm(l, this->reproject(l, obj_pt)(0));
         if (lm.second * ls.second < 0) {
             le = lm;
@@ -51,10 +53,42 @@ Eigen::Vector2d RPM::forward(Eigen::Vector3d obj_pt)
         }
         else return Eigen::Vector2d(0, 0);
         new_l = (ls.first + le.first) / 2.f;
-        if (abs(l - new_l) < 0.05)break;
+        if (abs(l - new_l) < 10) {
+            found = true;
+            break;
+        }
     }
 
-    //return Eigen::Vector2d(l,);
+    if (found) {
+        double min = 10000;
+        int line_id = (ls.first+le.first)/2;
+        for (int l = ls.first;l < le.first;l++) {
+            double dx = abs(this->reproject(l, obj_pt)(0));
+            if (dx < min) {
+                min = dx;
+                line_id = l;
+            }
+        }
+
+        int sample_id = 0;
+        double dy = atan(this->reproject(line_id, obj_pt)(1));
+        auto near = utils::_find_floor_and_ceil<types::CCDAngleRaw>(dy, this->ccd_angles, [](types::CCDAngleRaw a){return a.PsiX;});
+        if (near.size() == 1) {
+            sample_id = near[0].sample_id;
+        }
+        else {
+            if (abs(near[0].PsiX - dy) < abs(near[1].PsiX - dy)) {
+                sample_id = near[0].sample_id;
+            }
+            else {
+                sample_id = near[1].sample_id;
+            }
+        }
+
+        return Eigen::Vector2d(line_id, sample_id);
+    }
+
+    return Eigen::Vector2d(0, 0);
 }
 
 Eigen::Vector2d RPM::reproject(double line_id, Eigen::Vector3d obj_pt)
@@ -62,8 +96,8 @@ Eigen::Vector2d RPM::reproject(double line_id, Eigen::Vector3d obj_pt)
     Eigen::Vector3d t;Eigen::Matrix3d R;
     getExtrinsicElems(line_id, t, R);
     Eigen::Vector3d Psi = R.transpose() * (obj_pt - t);
-    double PsiX = -Psi(0) / Psi(2), PsiY = -Psi(1) / Psi(2);
-    return Eigen::Vector2d(PsiX, PsiY);
+    double PsiY = -Psi(0) / Psi(2), PsiX = -Psi(1) / Psi(2);
+    return Eigen::Vector2d(PsiY, PsiX);
 }
 
 bool RPM::getExtrinsicElems(double line_id, Eigen::Vector3d& translation, Eigen::Matrix3d& rotation)
