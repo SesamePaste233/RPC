@@ -76,13 +76,16 @@ Eigen::Vector2d RPM::forward(Eigen::Vector3d obj_pt)
         if (near.size() == 1) {
             sample_id = near[0].sample_id;
         }
-        else {
+        else if(near.size() == 2) {
             if (abs(near[0].PsiX - dy) < abs(near[1].PsiX - dy)) {
                 sample_id = near[0].sample_id;
             }
             else {
                 sample_id = near[1].sample_id;
             }
+        }
+        else {
+            return Eigen::Vector2d(0, 0);
         }
 
         return Eigen::Vector2d(line_id, sample_id);
