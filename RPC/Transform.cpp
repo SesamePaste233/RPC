@@ -104,7 +104,7 @@ types::XYZ tf::BLH2XYZ(types::BLH BLH)
 	double a = 6378137;
 	double e2 = 0.00669437999013;
 	double B = BLH.B * PI / 180;
-	double L = BLH.H * PI / 180;
+	double L = BLH.L * PI / 180;
 	double W = sqrt(1 - e2 * sin(B) * sin(B));
 	double N = a / W;
 

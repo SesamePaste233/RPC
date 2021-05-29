@@ -104,8 +104,12 @@ namespace utils {
 
 		int radius = 3;
 		if (delta_t != 0) {
-			if (st / delta_t - radius < 0)return std::vector<T>();
-			begin += st / delta_t - radius;
+			if (st / delta_t - radius >= data_seq.size())return std::vector<T>();
+			if (st / delta_t + radius < 0)return std::vector<T>();
+			if (st / delta_t - radius < 0) {
+				begin = data_seq.begin();
+			}
+			else begin += st / delta_t - radius;
 			if (st / delta_t + radius >= data_seq.size()) {
 				end = data_seq.begin() + data_seq.size() - 1;
 			}

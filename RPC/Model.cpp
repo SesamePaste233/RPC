@@ -342,63 +342,63 @@ bool RFM::readCoeffFromFile(std::string file_name)
         if (!read[0] && line.find("X_RECT_COEFF") != line.npos) {
             for (int j = 0;j < 2;j++) {
                 ifs >> value;
-                this->X_RECT_COEFF(i) = value;
+                this->X_RECT_COEFF(j) = value;
             }
             i++, read[0] = true;
         }
         else if (!read[1] && line.find("Y_RECT_COEFF") != line.npos) {
             for (int j = 0;j < 2;j++) {
                 ifs >> value;
-                this->Y_RECT_COEFF(i) = value;
+                this->Y_RECT_COEFF(j) = value;
             }
             i++, read[1] = true;
         }
         else if (!read[2] && line.find("Z_RECT_COEFF") != line.npos) {
             for (int j = 0;j < 2;j++) {
                 ifs >> value;
-                this->Z_RECT_COEFF(i) = value;
+                this->Z_RECT_COEFF(j) = value;
             }
             i++, read[2] = true;
         }
         else if (!read[3] && line.find("LINE_RECT_COEFF") != line.npos) {
             for (int j = 0;j < 2;j++) {
                 ifs >> value;
-                this->LINE_RECT_COEFF(i) = value;
+                this->LINE_RECT_COEFF(j) = value;
             }
             i++, read[3] = true;
         }
         else if (!read[4] && line.find("SAMPLE_RECT_COEFF") != line.npos) {
             for (int j = 0;j < 2;j++) {
                 ifs >> value;
-                this->SAMPLE_RECT_COEFF(i) = value;
+                this->SAMPLE_RECT_COEFF(j) = value;
             }
             i++, read[4] = true;
         }
         else if (!read[5] && line.find("LINE_NUM_COEFF") != line.npos) {
             for (int j = 0;j < 20;j++) {
                 ifs >> value;
-                this->LINE_NUM_COEFF(i) = value;
+                this->LINE_NUM_COEFF(j) = value;
             }
             i++, read[5] = true;
         }
         else if (!read[6] && line.find("LINE_DEN_COEFF") != line.npos) {
             for (int j = 0;j < 20;j++) {
                 ifs >> value;
-                this->LINE_DEN_COEFF(i) = value;
+                this->LINE_DEN_COEFF(j) = value;
             }
             i++, read[6] = true;
         }
         else if (!read[7] && line.find("SAMP_NUM_COEFF") != line.npos) {
             for (int j = 0;j < 20;j++) {
                 ifs >> value;
-                this->SAMP_NUM_COEFF(i) = value;
+                this->SAMP_NUM_COEFF(j) = value;
             }
             i++, read[7] = true;
         }
         else if (!read[8] && line.find("SAMP_DEN_COEFF") != line.npos) {
             for (int j = 0;j < 20;j++) {
                 ifs >> value;
-                this->SAMP_DEN_COEFF(i) = value;
+                this->SAMP_DEN_COEFF(j) = value;
             }
             i++, read[8] = true;
         }

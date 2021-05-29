@@ -140,6 +140,7 @@ bool io::readFromRawFile(string file_name, std::vector<types::RotationRaw>& rota
         rotations.push_back(r);
     }
     if (!rotations.empty())rotations.pop_back();
+    return true;
 }
 
 bool io::readFromRawFile(std::string file_name, Eigen::MatrixXd& dem)
@@ -154,4 +155,5 @@ bool io::readFromRawFile(std::string file_name, Eigen::MatrixXd& dem)
             ifs >> dem(i, j);
         }
     }
+    return true;
 }
