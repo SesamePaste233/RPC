@@ -77,14 +77,26 @@ namespace utils {
 		}
 		return output;
 	}
-
-
+	
+	/// <summary>
+	/// 对于特定值与下标呈近似线性关系的数据序列求给定值邻域的快速算法;
+	/// Fast searching method for sorted data sequence with each value inside near-linear associated with its position.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="v">: Value to be searched.</param>
+	/// <param name="data_seq">: Data sequence input.</param>
+	/// <param name="_which_value">: Method to retrieve comparable value from each element of data sequence.</param>
+	/// <param name="range_off_set">: Neighbor range radius.</param>
+	/// <returns></returns>
 	template<class T>
-	auto _find_floor_and_ceil(double v, std::vector<T> data_seq, std::function<double(T)> _which_value = [](T a){return double(a);}, int range_off_set = 0) {
-		//std::sort(data_seq.begin(), data_seq.end(), [](T a, T b) {return a.header.timeCode < b.header.timeCode;});
-
+	auto _find_floor_and_ceil(double v, std::vector<T> data_seq, std::function<double(T)> _which_value = [](T _element){return double(_element);}, int range_off_set = 0) {
+		
 		int size = data_seq.size();
 		double delta_t = (_which_value(data_seq[size - 1]) - _which_value(data_seq[0])) / double(size - 1);
+		std::function<bool(T)> _comp = [&](T a) {return _which_value(a) > v;};
+		if (delta_t < 0) {
+			_comp = [&](T a) {return _which_value(a) < v;};
+		}
 
 		double st = v - _which_value(data_seq[0]);
 		auto begin = data_seq.begin();
@@ -101,7 +113,7 @@ namespace utils {
 		}
 		auto iter = data_seq.begin();
 		do {
-			iter = std::find_if(begin, end, [&](T a) {return _which_value(a) > v;});
+			iter = std::find_if(begin, end, _comp);
 			if (iter != data_seq.end())break;
 			try {
 				begin -= radius;

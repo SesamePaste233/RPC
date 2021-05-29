@@ -23,13 +23,12 @@ int main(){
 	rpm.pry_sen2body = { -0.000511776876952,0.001828916699906,0.003770429577750 };
 	rpm.WGS84_A = 6378137, rpm.WGS84_B = 6356752.3;
 
+	/*
 	auto img_pts = utils::genRectGridWithLeveledHeight(10, 10, 5, 0, 5378, 0, 8192, 45, 65);
 
 	std::vector<Eigen::Vector2d> ctrl_pts_img;
 	std::vector<Eigen::Vector3d> ctrl_pts_obj;
 	std::vector<types::BLH> BLHarray;
-
-	auto test = rpm.predict(488, 744, 49);
 
 	for (auto pt : img_pts) {
 		auto XYZ = rpm.predict(pt);
@@ -39,7 +38,9 @@ int main(){
 		ctrl_pts_obj.push_back(Eigen::Vector3d(BLH.B, BLH.L, BLH.H));
 		BLHarray.push_back(BLH);
 	}
+	*/
 
+	/*
 	RFM rfm;
 	rfm.solve(ctrl_pts_obj, ctrl_pts_img);
 
@@ -62,5 +63,6 @@ int main(){
 
 	std::ofstream ofs("zy3_coeffs.txt");
 	ofs << rfm;
-
+	*/
+	return 0;
 }

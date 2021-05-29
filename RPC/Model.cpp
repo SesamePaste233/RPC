@@ -71,7 +71,7 @@ Eigen::Vector2d RPM::forward(Eigen::Vector3d obj_pt)
         }
 
         int sample_id = 0;
-        double dy = atan(this->reproject(line_id, obj_pt)(1));
+        double dy = atan(this->reproject(line_id-1, obj_pt)(1));
         auto near = utils::_find_floor_and_ceil<types::CCDAngleRaw>(dy, this->ccd_angles, [](types::CCDAngleRaw a){return a.PsiX;});
         if (near.size() == 1) {
             sample_id = near[0].sample_id;
@@ -88,7 +88,7 @@ Eigen::Vector2d RPM::forward(Eigen::Vector3d obj_pt)
             return Eigen::Vector2d(0, 0);
         }
 
-        return Eigen::Vector2d(line_id, sample_id);
+        return Eigen::Vector2d(line_id + 1, sample_id + 1);
     }
 
     return Eigen::Vector2d(0, 0);
@@ -97,7 +97,7 @@ Eigen::Vector2d RPM::forward(Eigen::Vector3d obj_pt)
 Eigen::Vector2d RPM::reproject(double line_id, Eigen::Vector3d obj_pt)
 {
     Eigen::Vector3d t;Eigen::Matrix3d R;
-    getExtrinsicElems(line_id, t, R);
+    getExtrinsicElems(line_id + 1, t, R);
     Eigen::Vector3d Psi = R.transpose() * (obj_pt - t);
     double PsiY = -Psi(0) / Psi(2), PsiX = -Psi(1) / Psi(2);
     return Eigen::Vector2d(PsiY, PsiX);
