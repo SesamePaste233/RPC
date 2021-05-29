@@ -79,6 +79,21 @@ public:
 
 	Eigen::MatrixXd forward(std::vector<types::BLH> BLH);
 
+	bool readCoeffFromFile(std::string file_name);
+
+	inline friend std::ostream& operator<<(std::ostream& os,const RFM a) {
+		os << "X_RECT_COEFF = " << std::endl << "{" << std::endl << a.X_RECT_COEFF << std::endl << "}" << std::endl;
+		os << "Y_RECT_COEFF = " << std::endl << "{" << std::endl << a.Y_RECT_COEFF << std::endl << "}" << std::endl;
+		os << "Z_RECT_COEFF = " << std::endl << "{" << std::endl << a.Z_RECT_COEFF << std::endl << "}" << std::endl;
+		os << "LINE_RECT_COEFF = " << std::endl << "{" << std::endl << a.LINE_RECT_COEFF << std::endl << "}" << std::endl;
+		os << "SAMPLE_RECT_COEFF = " << std::endl << "{" << std::endl << a.SAMPLE_RECT_COEFF << std::endl << "}" << std::endl;
+		os << "LINE_NUM_COEFF = " << std::endl << "{" << std::endl << a.LINE_NUM_COEFF << std::endl << "}" << std::endl;
+		os << "LINE_DEN_COEFF = " << std::endl << "{" << std::endl << a.LINE_DEN_COEFF << std::endl << "}" << std::endl;
+		os << "SAMP_NUM_COEFF = " << std::endl << "{" << std::endl << a.SAMP_NUM_COEFF << std::endl << "}" << std::endl;
+		os << "SAMP_DEN_COEFF = " << std::endl << "{" << std::endl << a.SAMP_DEN_COEFF << std::endl << "}" << std::endl;
+		return os;
+	}
+
 protected:
 	static Eigen::VectorXd normalize(Eigen::VectorXd value, double& offset, double& scale);
 

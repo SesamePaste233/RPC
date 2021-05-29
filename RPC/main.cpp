@@ -60,6 +60,7 @@ int main(){
 	std::cout << "------------------------------------------------------------" << std::endl;
 	std::cout << "像方重投影误差(像素): " << std::setprecision(8) << std::fixed << reproj_error_x <<'\t'<< reproj_error_y << std::endl;
 
-
+	std::ofstream ofs("zy3_coeffs.txt");
+	ofs << rfm;
 
 }

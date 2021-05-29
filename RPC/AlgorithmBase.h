@@ -44,8 +44,10 @@ namespace utils {
 
 		int radius = 3;
 		if (delta_t != 0) {
-			if (st / delta_t - radius < 0)return std::vector<T>();
-			begin += st / delta_t - radius;
+			if (st / delta_t - radius < 0) {
+				begin = data_seq.begin();
+			}
+			else begin += st / delta_t - radius;
 			if (st / delta_t + radius >= data_seq.size()) {
 				end = data_seq.begin() + data_seq.size() - 1;
 			}
@@ -84,7 +86,7 @@ namespace utils {
 		int size = data_seq.size();
 		double delta_t = (_which_value(data_seq[size - 1]) - _which_value(data_seq[0])) / double(size - 1);
 
-		double st = t - _which_value(data_seq[0]);
+		double st = v - _which_value(data_seq[0]);
 		auto begin = data_seq.begin();
 		auto end = data_seq.end();
 
@@ -99,7 +101,7 @@ namespace utils {
 		}
 		auto iter = data_seq.begin();
 		do {
-			iter = std::find_if(begin, end, [&](T a) {return _which_value(a) > t;});
+			iter = std::find_if(begin, end, [&](T a) {return _which_value(a) > v;});
 			if (iter != data_seq.end())break;
 			try {
 				begin -= radius;
@@ -111,7 +113,7 @@ namespace utils {
 		} while (iter == data_seq.end());
 
 		std::vector<T> output;
-		if (_which_value(*(iter - 1)) == t) {
+		if (_which_value(*(iter - 1)) == v) {
 			for (auto i = iter - 1 - range_off_set;i != iter + range_off_set;i++) {
 				output.push_back(*i);
 			}

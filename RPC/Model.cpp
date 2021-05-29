@@ -129,6 +129,8 @@ bool RPM::getExtrinsicElems(double line_id, Eigen::Vector3d& translation, Eigen:
     rotation = R_j2w * R_b2j * R_s2b;
     
     translation = utils::interpolate(gps_data, time);
+
+    return true;
 }
 
 void RFM::solve(std::vector<Eigen::Vector3d> BLH_pts, std::vector<Eigen::Vector2d> img_pts)
@@ -271,7 +273,6 @@ Eigen::MatrixXd RFM::forward(std::vector<types::BLH> BLH)
     Eigen::VectorXd Z(n);
     Eigen::VectorXd ones(n);
     ones.fill(1);
-    int n = BLH.size();
     for (int i = 0; i < n; i++) {
         X(i) = BLH[i].B;
         Y(i) = BLH[i].L;
@@ -323,4 +324,88 @@ Eigen::MatrixXd RFM::forward(std::vector<types::BLH> BLH)
         //        std::cout << LS(i, 0) << "   " << LS(i, 1) << std::endl;
     }
     return LS;
+}
+
+bool RFM::readCoeffFromFile(std::string file_name)
+{
+    std::ifstream ifs(file_name);
+    if (!ifs.is_open())
+        return false;
+
+    int count = 9;
+    bool read[9] = { false };
+    int i = 0;
+    for (i = 0;i < count && !ifs.eof();) {
+        std::string line;
+        std::getline(ifs, line, '{');
+        double value = 0;
+        if (!read[0] && line.find("X_RECT_COEFF") != line.npos) {
+            for (int j = 0;j < 2;j++) {
+                ifs >> value;
+                this->X_RECT_COEFF(i) = value;
+            }
+            i++, read[0] = true;
+        }
+        else if (!read[1] && line.find("Y_RECT_COEFF") != line.npos) {
+            for (int j = 0;j < 2;j++) {
+                ifs >> value;
+                this->Y_RECT_COEFF(i) = value;
+            }
+            i++, read[1] = true;
+        }
+        else if (!read[2] && line.find("Z_RECT_COEFF") != line.npos) {
+            for (int j = 0;j < 2;j++) {
+                ifs >> value;
+                this->Z_RECT_COEFF(i) = value;
+            }
+            i++, read[2] = true;
+        }
+        else if (!read[3] && line.find("LINE_RECT_COEFF") != line.npos) {
+            for (int j = 0;j < 2;j++) {
+                ifs >> value;
+                this->LINE_RECT_COEFF(i) = value;
+            }
+            i++, read[3] = true;
+        }
+        else if (!read[4] && line.find("SAMPLE_RECT_COEFF") != line.npos) {
+            for (int j = 0;j < 2;j++) {
+                ifs >> value;
+                this->SAMPLE_RECT_COEFF(i) = value;
+            }
+            i++, read[4] = true;
+        }
+        else if (!read[5] && line.find("LINE_NUM_COEFF") != line.npos) {
+            for (int j = 0;j < 20;j++) {
+                ifs >> value;
+                this->LINE_NUM_COEFF(i) = value;
+            }
+            i++, read[5] = true;
+        }
+        else if (!read[6] && line.find("LINE_DEN_COEFF") != line.npos) {
+            for (int j = 0;j < 20;j++) {
+                ifs >> value;
+                this->LINE_DEN_COEFF(i) = value;
+            }
+            i++, read[6] = true;
+        }
+        else if (!read[7] && line.find("SAMP_NUM_COEFF") != line.npos) {
+            for (int j = 0;j < 20;j++) {
+                ifs >> value;
+                this->SAMP_NUM_COEFF(i) = value;
+            }
+            i++, read[7] = true;
+        }
+        else if (!read[8] && line.find("SAMP_DEN_COEFF") != line.npos) {
+            for (int j = 0;j < 20;j++) {
+                ifs >> value;
+                this->SAMP_DEN_COEFF(i) = value;
+            }
+            i++, read[8] = true;
+        }
+    }
+    if (i == 9) {
+        return true;
+    }
+
+    return false;
 }
