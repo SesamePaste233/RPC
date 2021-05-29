@@ -21,6 +21,41 @@ std::vector<Eigen::Vector3d> utils::genRectGridWithLeveledHeight(int cols, int r
 	return pts;
 }
 
+std::vector<Eigen::Vector3d> utils::genRectGridbyDEM(Eigen::MatrixXd DEM, double North, double West, double dLat, double dLon, int m, int n)
+{
+	std::vector<Eigen::Vector3d> RchArray;
+	Eigen::Vector3d Rch;
+	int row = DEM.rows();
+	int col = DEM.cols();
+	int a = std::round(row / (m + 1));
+	int b = std::round(col / (n + 1));
+	Eigen::VectorXd line(m);
+	Eigen::VectorXd sample(n);
+	Eigen::VectorXd Lat(m);
+	Eigen::VectorXd Lon(n);
+	for (int i = 0; i < m; i++) {
+		line(i) = a + a * i;
+		Lat(i) = North - dLat * (line(i) - 1);
+	}
+	for (int i = 0; i < n; i++) {
+		sample(i) = b + b * i;
+		Lon(i) = West + dLon * (sample(i) - 1);
+	}
+	Eigen::VectorXd h(m * n);
+	for (int i = 0; i < m * n; i++) {
+		h(i) = DEM(line(i % n) - 1, sample(i / m) - 1);
+	}
+	for (int i = 0; i < m * n; i++) {
+		Rch(0) = Lat(int(i % n));
+		Rch(1) = Lon(int(i / m));
+		Rch(2) = h(i);
+		RchArray.push_back(Rch);
+	}
+	return RchArray;
+
+
+}
+
 types::Quaternion utils::interpolate(types::Quaternion p, types::Quaternion q, double t0, double t1, double t)
 {
 	//该函数用来进行四元数球面插值

@@ -138,6 +138,8 @@ namespace utils {
 
 	std::vector<Eigen::Vector3d> genRectGridWithLeveledHeight(int cols, int rows, int dims, double c_min, double c_max, double r_min, double r_max, double h_min, double h_max);
 
+	std::vector<Eigen::Vector3d> genRectGridbyDEM(Eigen::MatrixXd DEM, double North, double West, double dLat, double dLon, int m, int n);
+
 	types::Quaternion interpolate(types::Quaternion p, types::Quaternion q, double t0, double t1, double t);
 
 	//t1为上一个时刻，t2为下一个时刻，T是本时刻

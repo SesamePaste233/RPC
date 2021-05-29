@@ -7,4 +7,5 @@ namespace io {
 	bool readFromRawFile(std::string file_name, std::vector<types::CCDAngleRaw>& ccd_angle_list);
 	bool readFromRawFile(std::string file_name, std::vector<types::ImagingTimeRaw>& imaging_time_list);
 	bool readFromRawFile(std::string file_name, std::vector<types::RotationRaw>& rotations);
+	bool readFromRawFile(std::string file_name, Eigen::MatrixXd& dem);
 }

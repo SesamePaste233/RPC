@@ -40,8 +40,9 @@ int main(){
 	}
 	*/
 
-	/*
+	
 	RFM rfm;
+	/*
 	rfm.solve(ctrl_pts_obj, ctrl_pts_img);
 
 	Eigen::MatrixXd ctrl_img_reprojection;
@@ -64,5 +65,36 @@ int main(){
 	std::ofstream ofs("zy3_coeffs.txt");
 	ofs << rfm;
 	*/
+	rfm.readCoeffFromFile("zy3_coeffs.txt");
+
+	Eigen::MatrixXd DEM(206, 327);
+
+	io::readFromRawFile("dem.txt", DEM);
+
+	double North = 35.96528996;
+	double West = 114.60535575;
+	double dLat = 0.0007999999999;
+	double dLon = 0.0007999999999;
+	auto ground_pts_BLH = utils::genRectGridbyDEM(DEM, North, West, dLat, dLon, 20, 20);
+	std::vector<Eigen::Vector3d> obj_pts;
+	std::vector<Eigen::Vector2d> img_pts;
+	std::vector<types::BLH> obj_pts_BLH;
+
+	for (auto pt : ground_pts_BLH) {
+		auto XYZ = tf::BLH2XYZ({ pt(0),pt(1),pt(2) });
+		auto img_pt = rpm.forward(Eigen::Vector3d(XYZ.X, XYZ.Y, XYZ.Z));
+		if (img_pt(0) == 0 || img_pt(1) == 0) {
+			continue;
+		}
+		obj_pts_BLH.push_back({ pt(0),pt(1),pt(2) });
+		img_pts.push_back(img_pt);
+	}
+
+	rfm.forward(obj_pts_BLH);
+
+
+
+
+
 	return 0;
 }

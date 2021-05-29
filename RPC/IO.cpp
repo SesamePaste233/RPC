@@ -141,3 +141,17 @@ bool io::readFromRawFile(string file_name, std::vector<types::RotationRaw>& rota
     }
     if (!rotations.empty())rotations.pop_back();
 }
+
+bool io::readFromRawFile(std::string file_name, Eigen::MatrixXd& dem)
+{
+    std::ifstream ifs(file_name);
+    if (!ifs.is_open())
+        return false;
+    double cols = dem.cols();
+    double rows = dem.rows();
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            ifs >> dem(i, j);
+        }
+    }
+}
