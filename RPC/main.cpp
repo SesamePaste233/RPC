@@ -62,10 +62,10 @@ int main(){
 	reproj_error_y = sqrt(reproj_error_y / double(ctrl_pts_obj.size()));
 
 	std::cout << "------------------------------------------------------------" << std::endl;
-	std::cout << "Ïñ·½ÖØÍ¶Ó°Îó²î(ÏñËØ): " << std::setprecision(8) << std::fixed << reproj_error_x <<'\t'<< reproj_error_y << std::endl;
+	std::cout << "¿ØÖÆµãÏñ·½Îó²î(ÏñËØ): " << std::setprecision(8) << std::fixed << reproj_error_x <<'\t'<< reproj_error_y << std::endl;
 
 	std::ofstream ofs("zy3_coeffs.txt");
-	ofs << rfm;
+	ofs << std::setprecision(16) << rfm;
 
 	Eigen::MatrixXd DEM(206, 327);
 

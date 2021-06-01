@@ -9,7 +9,6 @@
 /// Version: 2021-5-28
 /// Last updated: Pseudo-inverse Method add during inverse-based optimization.
 /// </summary>
-
 namespace opt {
 		
 	/// <summary>

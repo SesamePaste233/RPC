@@ -225,7 +225,7 @@ void RFM::solve(std::vector<Eigen::Vector3d> BLH_pts, std::vector<Eigen::Vector2
     };
 
     auto condition = [&]()->bool {
-        std::cout << solver.sigma() << std::endl;
+        std::cout <<std::fixed<<std::setprecision(8) <<"单位权中误差（像素）："<< solver.sigma() << std::endl;
         return solver.sigma() < 1e-4;
     };
     solver.addQuitCondition(condition);
